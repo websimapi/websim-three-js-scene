@@ -11,13 +11,16 @@ export class ChunkManager {
     this.loadedChunks = new Set();
     this.noise2D = createNoise2D();
     this.terrainSettings = {
-      height: 10,
-      scale: 50,
-      octaves: 4,
+      height: 20, 
+      scale: 80,  
+      octaves: 6, 
       persistence: 0.5,
       lacunarity: 2.0,
-      heightOffset: -2
+      heightOffset: -5
     };
+
+    // Force initial chunk generation
+    this.update(new THREE.Vector3(0, 0, 0));
   }
 
   getChunkCoord(position) {
@@ -51,7 +54,7 @@ export class ChunkManager {
   }
 
   createChunk(chunkX, chunkZ) {
-    const resolution = 32; // vertices per side
+    const resolution = 32; 
     const geometry = new THREE.PlaneGeometry(
       this.chunkSize,
       this.chunkSize,
@@ -88,17 +91,17 @@ export class ChunkManager {
       let color = new THREE.Color();
 
       if (height < -1) {
-        color.setHex(0x2233dd); // Deep water
+        color.setHex(0x2233dd); 
       } else if (height < 0) {
-        color.setHex(0x3355ff); // Shallow water
+        color.setHex(0x3355ff); 
       } else if (height < 1) {
-        color.setHex(0xddcc88); // Sand
+        color.setHex(0xddcc88); 
       } else if (height < 4) {
-        color.setHex(0x55aa55); // Grass
+        color.setHex(0x55aa55); 
       } else if (height < 6) {
-        color.setHex(0x777777); // Rock
+        color.setHex(0x777777); 
       } else {
-        color.setHex(0xffffff); // Snow
+        color.setHex(0xffffff); 
       }
 
       colors.push(color.r, color.g, color.b);
