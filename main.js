@@ -30,6 +30,30 @@ const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = Math.PI / 2;
 scene.add(plane);
 
+// Create mouse indicator
+const indicatorGeometry = new THREE.CircleGeometry(0.2, 32);
+const indicatorMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00ff00,
+  transparent: true,
+  opacity: 0.5,
+  side: THREE.DoubleSide
+});
+const mouseIndicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
+mouseIndicator.rotation.x = Math.PI / 2;
+mouseIndicator.visible = false;
+scene.add(mouseIndicator);
+
+// Raycaster setup
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Mouse move event handler
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+window.addEventListener('mousemove', onMouseMove, false);
+
 // Position camera
 camera.position.z = 5;
 camera.position.y = 5;
@@ -45,12 +69,30 @@ function onWindowResize() {
 }
 
 // Animation loop
+let time = 0;
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   
   // Update chunks based on camera position
   chunkManager.update(camera.position);
+  
+  // Update raycaster
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects([plane, ...Array.from(chunkManager.chunks.values())]);
+  
+  if (intersects.length > 0) {
+    const intersectionPoint = intersects[0].point;
+    mouseIndicator.position.copy(intersectionPoint);
+    mouseIndicator.visible = true;
+    
+    // Pulse animation
+    time += 0.05;
+    const scale = 1 + Math.sin(time) * 0.3; // Scale between 0.7 and 1.3
+    mouseIndicator.scale.set(scale, scale, scale);
+  } else {
+    mouseIndicator.visible = false;
+  }
   
   renderer.render(scene, camera);
 }
