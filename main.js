@@ -94,16 +94,15 @@ function updateCameraFocus(targetPosition) {
   if (!isCameraMoving) {
     isCameraMoving = true;
     
-    // Store original camera position and target
+    // Store original camera position, target, and camera-to-target vector
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
     
-    // Calculate new camera position
-    const newPosition = new THREE.Vector3(
-      targetPosition.x + 5,
-      startPosition.y,
-      targetPosition.z + 5
-    );
+    // Calculate the relative offset from target to camera
+    const offsetVector = startPosition.clone().sub(startTarget);
+    
+    // Calculate new camera position while maintaining relative angle
+    const newPosition = targetPosition.clone().add(offsetVector);
     
     // Animation parameters
     const duration = 1000; // Duration in milliseconds
