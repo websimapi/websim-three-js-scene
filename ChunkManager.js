@@ -4,8 +4,8 @@ export class ChunkManager {
   constructor(scene) {
     this.scene = scene;
     this.chunks = new Map(); // Map of chunk coordinates to chunk meshes
-    this.chunkSize = 10; // Size of each chunk
-    this.viewDistance = 3; // Number of chunks to load in each direction
+    this.chunkSize = 32; // Increased chunk size for better visibility
+    this.viewDistance = 12; // Significantly increased view distance
     this.loadedChunks = new Set(); // Set of loaded chunk coordinates as strings
   }
 
