@@ -5,14 +5,17 @@ import { setupLights } from './lights.js';
 
 // Scene setup
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb); // Sky blue background
+
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Add OrbitControls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.dampingFactor = 0.05;
 
 // Setup lights
 setupLights(scene);
@@ -31,7 +34,7 @@ plane.rotation.x = Math.PI / 2;
 scene.add(plane);
 
 // Create mouse indicator
-const indicatorGeometry = new THREE.CircleGeometry(0.2, 32);
+const indicatorGeometry = new THREE.CircleGeometry(0.5, 32);
 const indicatorMaterial = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   transparent: true,
@@ -77,8 +80,7 @@ function onMouseMove(event) {
 window.addEventListener('mousemove', onMouseMove, false);
 
 // Position camera
-camera.position.z = 5;
-camera.position.y = 5;
+camera.position.set(20, 20, 20);
 camera.lookAt(0, 0, 0);
 
 // Handle window resize
@@ -137,6 +139,9 @@ function updateCameraFocus(targetPosition) {
 // Modify renderer settings for shadows
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Add fog for distance fade
+scene.fog = new THREE.Fog(0x87ceeb, 50, 150);
 
 // Animation loop
 let time = 0;
