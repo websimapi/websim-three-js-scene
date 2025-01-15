@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
-import SimplexNoise from 'https://cdn.skypack.dev/simplex-noise';
+import { createNoise2D } from 'https://cdn.skypack.dev/simplex-noise';
 
 export class ChunkManager {
   constructor(scene) {
@@ -9,7 +9,7 @@ export class ChunkManager {
     this.viewDistance = 8;
     this.renderDistance = 12;
     this.loadedChunks = new Set();
-    this.noise = new SimplexNoise();
+    this.noise2D = createNoise2D();
     this.terrainSettings = {
       height: 10,
       scale: 50,
@@ -38,7 +38,7 @@ export class ChunkManager {
       const sampleX = (x + 1000) / this.terrainSettings.scale * frequency;
       const sampleZ = (z + 1000) / this.terrainSettings.scale * frequency;
       
-      const noiseValue = this.noise.noise2D(sampleX, sampleZ);
+      const noiseValue = this.noise2D(sampleX, sampleZ);
       noiseHeight += noiseValue * amplitude;
       
       amplitudeSum += amplitude;
