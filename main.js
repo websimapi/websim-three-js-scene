@@ -5,16 +5,14 @@ import { setupLights } from './lights.js';
 
 // Scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Add OrbitControls with adjusted settings
+// Add OrbitControls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.maxDistance = 1000;
-controls.minDistance = 5;
 
 // Setup lights
 setupLights(scene);
@@ -55,8 +53,8 @@ const mouse = new THREE.Vector2();
 let lastMouseMoveTime = Date.now();
 let lastMousePosition = new THREE.Vector2();
 let mouseStationaryDuration = 0;
-const MOUSE_STATIONARY_THRESHOLD = 1000; 
-const MOUSE_MOVEMENT_THRESHOLD = 0.01; 
+const MOUSE_STATIONARY_THRESHOLD = 1000; // Time in ms before camera focuses
+const MOUSE_MOVEMENT_THRESHOLD = 0.01; // How much mouse movement is considered "stationary"
 let isCameraMoving = false;
 
 // Mouse move event handler
@@ -64,6 +62,7 @@ function onMouseMove(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   
+  // Check if mouse has moved significantly
   const mouseDelta = new THREE.Vector2(
     Math.abs(mouse.x - lastMousePosition.x),
     Math.abs(mouse.y - lastMousePosition.y)
@@ -77,9 +76,9 @@ function onMouseMove(event) {
 }
 window.addEventListener('mousemove', onMouseMove, false);
 
-// Position camera higher for better overview
-camera.position.z = 100;
-camera.position.y = 100;
+// Position camera
+camera.position.z = 5;
+camera.position.y = 5;
 camera.lookAt(0, 0, 0);
 
 // Handle window resize
@@ -95,14 +94,18 @@ function updateCameraFocus(targetPosition) {
   if (!isCameraMoving) {
     isCameraMoving = true;
     
+    // Store original camera position, target, and camera-to-target vector
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
     
+    // Calculate the relative offset from target to camera
     const offsetVector = startPosition.clone().sub(startTarget);
     
+    // Calculate new camera position while maintaining relative angle
     const newPosition = targetPosition.clone().add(offsetVector);
     
-    const duration = 1000; 
+    // Animation parameters
+    const duration = 1000; // Duration in milliseconds
     const startTime = Date.now();
     
     function animateCamera() {
@@ -110,10 +113,12 @@ function updateCameraFocus(targetPosition) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
+      // Ease function (cubic)
       const ease = progress < 0.5 
         ? 4 * progress * progress * progress 
         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       
+      // Interpolate camera position and target
       camera.position.lerpVectors(startPosition, newPosition, ease);
       controls.target.lerpVectors(startTarget, targetPosition, ease);
       controls.update();
@@ -129,8 +134,9 @@ function updateCameraFocus(targetPosition) {
   }
 }
 
-// Add fog to scene for better distance visualization
-scene.fog = new THREE.Fog(0x000000, 200, 1000);
+// Modify renderer settings for shadows
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // Animation loop
 let time = 0;
@@ -138,8 +144,10 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
   
+  // Update chunks based on camera position
   chunkManager.update(camera.position);
   
+  // Update raycaster
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects([plane, ...Array.from(chunkManager.chunks.values())]);
   
@@ -148,15 +156,18 @@ function animate() {
     mouseIndicator.position.copy(intersectionPoint).add(new THREE.Vector3(0, 0.01, 0));
     mouseIndicator.visible = true;
     
+    // Update mouse stationary duration
     if (!isCameraMoving) {
       mouseStationaryDuration = Date.now() - lastMouseMoveTime;
       
+      // If mouse has been stationary long enough, focus camera
       if (mouseStationaryDuration >= MOUSE_STATIONARY_THRESHOLD) {
         updateCameraFocus(intersectionPoint);
-        lastMouseMoveTime = Date.now(); 
+        lastMouseMoveTime = Date.now(); // Reset timer
       }
     }
     
+    // Pulse animation
     time += 0.05;
     const scale = 1 + Math.sin(time) * 0.3; 
     mouseIndicator.scale.set(scale, scale, scale);
