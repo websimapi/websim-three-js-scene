@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
 import { OrbitControls } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js';
+import { ChunkManager } from './ChunkManager.js';
+import { setupLights } from './lights.js';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -12,6 +14,12 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
+// Setup lights
+setupLights(scene);
+
+// Initialize chunk manager
+const chunkManager = new ChunkManager(scene);
+
 // Create plane
 const planeGeometry = new THREE.PlaneGeometry(10, 10);
 const planeMaterial = new THREE.MeshStandardMaterial({ 
@@ -21,18 +29,6 @@ const planeMaterial = new THREE.MeshStandardMaterial({
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = Math.PI / 2;
 scene.add(plane);
-
-// Add lights
-const ambientLight = new THREE.AmbientLight(0x404040);
-scene.add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight.position.set(5, 5, 5);
-scene.add(directionalLight);
-
-const pointLight = new THREE.PointLight(0xffffff, 0.5);
-pointLight.position.set(-5, 5, -5);
-scene.add(pointLight);
 
 // Position camera
 camera.position.z = 5;
@@ -52,6 +48,10 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
+  
+  // Update chunks based on camera position
+  chunkManager.update(camera.position);
+  
   renderer.render(scene, camera);
 }
 
