@@ -36,7 +36,9 @@ const indicatorMaterial = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   transparent: true,
   opacity: 0.5,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
+  depthTest: false, // Disable depth testing
+  renderOrder: 1 // Ensure it renders on top
 });
 const mouseIndicator = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
 mouseIndicator.rotation.x = Math.PI / 2;
@@ -83,12 +85,13 @@ function animate() {
   
   if (intersects.length > 0) {
     const intersectionPoint = intersects[0].point;
-    mouseIndicator.position.copy(intersectionPoint);
+    // Position slightly above the plane to prevent z-fighting
+    mouseIndicator.position.copy(intersectionPoint).add(new THREE.Vector3(0, 0.01, 0));
     mouseIndicator.visible = true;
     
     // Pulse animation
     time += 0.05;
-    const scale = 1 + Math.sin(time) * 0.3; // Scale between 0.7 and 1.3
+    const scale = 1 + Math.sin(time) * 0.3; 
     mouseIndicator.scale.set(scale, scale, scale);
   } else {
     mouseIndicator.visible = false;
